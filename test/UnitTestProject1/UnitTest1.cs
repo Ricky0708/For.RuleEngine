@@ -39,7 +39,7 @@ namespace UnitTestProject1
         }
         [TestMethod]
         public void TemplateTest()
-        {
+        { 
             var finish = false;
             IRuleFactory<string, string> factory = new RuleFactory<string,string>();
             factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
