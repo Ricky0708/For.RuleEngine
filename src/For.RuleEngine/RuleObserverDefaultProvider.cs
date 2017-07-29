@@ -9,11 +9,11 @@ using For.RuleEngine.Model;
 
 namespace For.RuleEngine
 {
-    public interface IRoleProvider
+    public interface IRuleObserverProvider
     {
         IObservable<Result<TPassresult, TFailureResult>> GenerateObservable<TInstance, TPassresult, TFailureResult>(TInstance instance, Rule<TInstance, TPassresult, TFailureResult> model);
     }
-    public class RuleProvider : IRoleProvider
+    public class RuleObserverDefaultProvider : IRuleObserverProvider
     {
         /// <summary>
         /// make observable, if exception, it will trigger on error in observer

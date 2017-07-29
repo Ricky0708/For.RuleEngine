@@ -42,18 +42,21 @@ namespace For.RuleEngine
         /// reset container
         /// </summary>
         void ReseterRules();
+
+        IRuleObserverProvider Provider { get; }
     }
     public class RuleFactory : IRuleFactory<string, string>
     {
         private static readonly FormulaProcess _formulaProcessor = new FormulaProcess(); //Separate string formula
         private static readonly ExpressionProcess _expressionProcessor = new ExpressionProcess(); // generate formula to expression
         private readonly List<RuleModel> _lstRules = new List<RuleModel>();
-        private readonly IRoleProvider _provider;
+        public IRuleObserverProvider Provider { get; }
 
-        public RuleFactory(IRoleProvider provider = null)
+        public RuleFactory(IRuleObserverProvider provider = null)
         {
-            _provider = provider ?? new RuleProvider();
+            Provider = provider ?? new RuleObserverDefaultProvider();
         }
+
         public void RegisterFunc<T>(string key, string func, string passResult, string failureResult)
         {
             lock (_lstRules)
@@ -91,6 +94,8 @@ namespace For.RuleEngine
             }
         }
 
+    
+
         public IObservable<Result<string, string>> Apply<T>(string groupKey, T instance)
         {
             // get concat observable
@@ -98,8 +103,8 @@ namespace For.RuleEngine
             {
                 var funcs = _lstRules.Where(p => p.Key == groupKey);
                 return funcs.Aggregate<RuleModel, IObservable<Result<string, string>>>(null, (current, rule) => current == null
-                    ? _provider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)
-                    : current.Concat(_provider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)));
+                    ? Provider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)
+                    : current.Concat(Provider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)));
             }
         }
 
