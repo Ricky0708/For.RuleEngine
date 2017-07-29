@@ -2,6 +2,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
+using ConsoleTest.Rules;
 using For.RuleEngine;
 using For.RuleEngine.Model;
 
@@ -18,10 +19,21 @@ namespace ConsoleTest
     {
         public int Total { get; set; }
     }
+
     class Program
     {
-
         static void Main(string[] args)
+        {
+
+            RunProfile();
+//            RunOrder();
+
+            Console.WriteLine("AA");
+            Console.ReadLine();
+
+        }
+
+        static void RunProfile()
         {
             var finish = false;
             IRuleFactory<string, string> factory = new RuleFactory();
@@ -29,23 +41,9 @@ namespace ConsoleTest
             factory.RegisterFunc<Profile>("1", ".Age<99", "Less than 30", "Over than 30");
             factory.RegisterFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "Name is not Ricky");
             factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
-            factory.RegisterFunc<Order>("2", ".Total>1000", "100", "0");
-            factory.RegisterFunc<Order>("2", ".Total>3000", "500", "0");
-            factory.RegisterFunc<Order>("2", ".Total>5000", "1000", "0");
-            factory.RegisterTemplate<Order>("2", new RuleOrder() { PassResult = "Pass", FailureResult = "Failure" });
+            var observable = factory.Apply("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
 
-            var observable = factory.Apply("1", new Profile()
-            {
-                Name = "Ricky",
-                Age = 25,
-                Sex = "男"
-            });
-            var observableb = factory.Apply("2", new Order()
-            {
-                Total = 3500
-            });
-            //--------------------------------------------------------------------
-            using (observable.Subscribe(
+            observable.Subscribe(
                 next =>
                 {
                     Console.WriteLine(next.IsPass);
@@ -58,29 +56,35 @@ namespace ConsoleTest
                     Console.WriteLine("Err");
                     finish = true;
                 },
-                () => finish = true))
-            {
-
-            }
+                () => finish = true);
             SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
-            Console.WriteLine("aa");
-            Console.ReadLine();
 
         }
 
-        public class RuleOrder : Rule<Order, string, string>
+        static void RunOrder()
         {
-            public override bool Invoke(Order instance)
-            {
-                return instance.Total > 5000;
-            }
-        }
-        public class RuleProfile : Rule<Profile, string, string>
-        {
-            public override bool Invoke(Profile instance)
-            {
-                return instance.Sex == "Boy";
-            }
+            var finish = false;
+            IRuleFactory<string, string> factory = new RuleFactory();
+            factory.RegisterFunc<Order>("2", ".Total>1000", "100", "0");
+            factory.RegisterFunc<Order>("2", ".Total>3000", "500", "0");
+            factory.RegisterFunc<Order>("2", ".Total>5000", "1000", "0");
+            factory.RegisterTemplate<Order>("2", new RuleOrder() { PassResult = "Pass", FailureResult = "Failure" });
+            var observable = factory.Apply("2", new Order() { Total = 3500 });
+            observable.Subscribe(
+                next =>
+                {
+                    Console.WriteLine(next.IsPass);
+                    Console.WriteLine(next.PassResult);
+                    Console.WriteLine(next.FailureResult);
+                    Console.WriteLine("");
+                },
+                onError =>
+                {
+                    Console.WriteLine("Err");
+                    finish = true;
+                },
+                () => finish = true);
+            SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
         }
     }
 }
