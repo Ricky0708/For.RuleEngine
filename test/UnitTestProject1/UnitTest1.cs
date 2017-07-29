@@ -13,7 +13,7 @@ namespace UnitTestProject1
         public void FuncTest()
         {
             var finish = false;
-            IRuleFactory<string, string> factory = new RuleFactory();
+            IRuleFactory<string, string> factory = new RuleFactory<string, string>();
             factory.RegisterFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=¨k", "His name is Ricky and he is a more than 20 years old", "Less than 30");
             var observable = factory.Apply("1", new Profile()
             {
@@ -41,7 +41,7 @@ namespace UnitTestProject1
         public void TemplateTest()
         {
             var finish = false;
-            IRuleFactory<string, string> factory = new RuleFactory();
+            IRuleFactory<string, string> factory = new RuleFactory<string,string>();
             factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
 
             var observable = factory.Apply("1", new Profile()
