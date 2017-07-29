@@ -53,14 +53,21 @@ namespace For.RuleEngine
         public IRuleObserverProvider Provider { get; }
 
         /// <summary>
-        /// 
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}"/>
         /// </summary>
         /// <param name="provider">if null use default provider</param>
         public RuleFactory(IRuleObserverProvider provider = null)
         {
             Provider = provider ?? new RuleObserverDefaultProvider();
         }
-
+        /// <summary>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.RegisterFunc{T}(string, string, TPassResult, TFailureResult)"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="func"></param>
+        /// <param name="passResult"></param>
+        /// <param name="failureResult"></param>
         public void RegisterFunc<T>(string key, string func, string passResult, string failureResult)
         {
             lock (_lstRules)
@@ -75,7 +82,12 @@ namespace For.RuleEngine
                 });
             }
         }
-
+        /// <summary>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.RegisterTemplate{T}(string, Rule{T, TPassResult, TFailureResult})"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="rule"></param>
         public void RegisterTemplate<T>(string key, Rule<T, string, string> rule)
         {
             //add to container
@@ -89,6 +101,9 @@ namespace For.RuleEngine
             }
         }
 
+        /// <summary>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.ReseterRules"/>
+        /// </summary>
         public void ReseterRules()
         {
             //clean container
@@ -98,8 +113,14 @@ namespace For.RuleEngine
             }
         }
 
-    
 
+        /// <summary>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.Apply{T}(string, T)"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="groupKey"></param>
+        /// <param name="instance"></param>
+        /// <returns></returns>
         public IObservable<Result<string, string>> Apply<T>(string groupKey, T instance)
         {
             // get concat observable

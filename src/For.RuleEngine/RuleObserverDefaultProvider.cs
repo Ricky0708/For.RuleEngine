@@ -11,6 +11,15 @@ namespace For.RuleEngine
 {
     public interface IRuleObserverProvider
     {
+        /// <summary>
+        /// make observable, if exception, it will trigger on error in observer
+        /// </summary>
+        /// <typeparam name="TInstance"></typeparam>
+        /// <typeparam name="TPassresult"></typeparam>
+        /// <typeparam name="TFailureResult"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
         IObservable<Result<TPassresult, TFailureResult>> GenerateObservable<TInstance, TPassresult, TFailureResult>(TInstance instance, Rule<TInstance, TPassresult, TFailureResult> model);
     }
     public class RuleObserverDefaultProvider : IRuleObserverProvider
