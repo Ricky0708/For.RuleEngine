@@ -9,7 +9,11 @@ using For.RuleEngine.Model;
 
 namespace For.RuleEngine
 {
-    internal class RuleProvider
+    public interface IRoleProvider
+    {
+        IObservable<Result<TPassresult, TFailureResult>> GenerateObservable<TInstance, TPassresult, TFailureResult>(TInstance instance, Rule<TInstance, TPassresult, TFailureResult> model);
+    }
+    public class RuleProvider : IRoleProvider
     {
         /// <summary>
         /// make observable, if exception, it will trigger on error in observer
@@ -20,7 +24,7 @@ namespace For.RuleEngine
         /// <param name="instance"></param>
         /// <param name="model"></param>
         /// <returns></returns>
-        internal static IObservable<Result<TPassresult, TFailureResult>> GenerateObservable<TInstance, TPassresult, TFailureResult>(TInstance instance, Rule<TInstance,TPassresult,TFailureResult> model)
+        public IObservable<Result<TPassresult, TFailureResult>> GenerateObservable<TInstance, TPassresult, TFailureResult>(TInstance instance, Rule<TInstance, TPassresult, TFailureResult> model)
         {
             var observable = Observable.Create<Result<TPassresult, TFailureResult>>(ob =>
             {

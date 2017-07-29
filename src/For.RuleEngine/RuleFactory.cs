@@ -48,7 +48,12 @@ namespace For.RuleEngine
         private static readonly FormulaProcess _formulaProcessor = new FormulaProcess(); //Separate string formula
         private static readonly ExpressionProcess _expressionProcessor = new ExpressionProcess(); // generate formula to expression
         private readonly List<RuleModel> _lstRules = new List<RuleModel>();
+        private readonly IRoleProvider _provider;
 
+        public RuleFactory(IRoleProvider provider = null)
+        {
+            _provider = provider ?? new RuleProvider();
+        }
         public void RegisterFunc<T>(string key, string func, string passResult, string failureResult)
         {
             lock (_lstRules)
@@ -93,8 +98,8 @@ namespace For.RuleEngine
             {
                 var funcs = _lstRules.Where(p => p.Key == groupKey);
                 return funcs.Aggregate<RuleModel, IObservable<Result<string, string>>>(null, (current, rule) => current == null
-                    ? RuleProvider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)
-                    : current.Concat(RuleProvider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)));
+                    ? _provider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)
+                    : current.Concat(_provider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)));
             }
         }
 

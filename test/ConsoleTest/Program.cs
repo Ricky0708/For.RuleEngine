@@ -28,7 +28,6 @@ namespace ConsoleTest
             RunProfile();
 //            RunOrder();
 
-            Console.WriteLine("AA");
             Console.ReadLine();
 
         }
@@ -41,7 +40,9 @@ namespace ConsoleTest
             factory.RegisterFunc<Profile>("1", ".Age<99", "Less than 30", "Over than 30");
             factory.RegisterFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "Name is not Ricky");
             factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
+            //-------------------
             var observable = factory.Apply("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
+            //-------------------
             observable.Subscribe(
                 next =>
                 {
