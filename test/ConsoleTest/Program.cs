@@ -26,7 +26,7 @@ namespace ConsoleTest
         {
 
             RunProfile();
-//            RunOrder();
+            //            RunOrder();
 
             Console.ReadLine();
 
@@ -35,35 +35,40 @@ namespace ConsoleTest
         static void RunProfile()
         {
             var finish = false;
-            IRuleFactory<string, string> factory = new RuleFactory();
+            IRuleFactory<string, string> factory = new RuleFactory<string, string>();
             factory.RegisterFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=男", "His name is Ricky and he is a more than 20 years old", "Less than 30");
             factory.RegisterFunc<Profile>("1", ".Age<99", "Less than 30", "Over than 30");
             factory.RegisterFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "Name is not Ricky");
             factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
-            //-------------------
-            var observable = factory.Apply("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
-            //-------------------
-            observable.Subscribe(
-                next =>
-                {
-                    Console.WriteLine(next.IsPass);
-                    Console.WriteLine(next.PassResult);
-                    Console.WriteLine(next.FailureResult);
-                    Console.WriteLine("");
-                },
-                onError =>
-                {
-                    Console.WriteLine("Err");
-                    finish = true;
-                },
-                () => finish = true);
+            for (int i = 0; i < 1000000; i++)
+            {
+
+                //-------------------
+                var observable = factory.Apply("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
+                //-------------------
+                observable.Subscribe(
+                    next =>
+                    {
+                        Console.WriteLine(next.IsPass);
+                        Console.WriteLine(next.PassResult);
+                        Console.WriteLine(next.FailureResult);
+                        Console.WriteLine("");
+                    },
+                    onError =>
+                    {
+                        Console.WriteLine("Err");
+                        finish = true;
+                    },
+                    () => finish = true);
+            }
+
             SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
         }
 
         static void RunOrder()
         {
             var finish = false;
-            IRuleFactory<string, string> factory = new RuleFactory();
+            IRuleFactory<string, string> factory = new RuleFactory<string, string>();
             factory.RegisterFunc<Order>("2", ".Total>1000", "100", "0");
             factory.RegisterFunc<Order>("2", ".Total>3000", "500", "0");
             factory.RegisterFunc<Order>("2", ".Total>5000", "1000", "0");

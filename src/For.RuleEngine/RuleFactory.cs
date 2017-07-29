@@ -22,15 +22,16 @@ namespace For.RuleEngine
         /// <param name="instance"></param>
         /// <returns></returns>
         IObservable<Result<TPassResult, TFailureResult>> Apply<T>(string groupKey, T instance);
+
         /// <summary>
         /// regist rule string func to container
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <param name="groupKey"></param>
         /// <param name="func"></param>
         /// <param name="passResult"></param>
         /// <param name="failureResult"></param>
-        void RegisterFunc<T>(string key, string func, TPassResult passResult, TFailureResult failureResult);
+        void RegisterFunc<T>(string groupKey, string func, TPassResult passResult, TFailureResult failureResult);
         /// <summary>
         /// register rule template to container
         /// </summary>
@@ -45,7 +46,7 @@ namespace For.RuleEngine
 
         IRuleObserverProvider Provider { get; }
     }
-    public class RuleFactory : IRuleFactory<string, string>
+    public class RuleFactory<TPassResult, TFailureResult> : IRuleFactory<TPassResult, TFailureResult>
     {
         private static readonly FormulaProcess _formulaProcessor = new FormulaProcess(); //Separate string formula
         private static readonly ExpressionProcess _expressionProcessor = new ExpressionProcess(); // generate formula to expression
@@ -55,40 +56,44 @@ namespace For.RuleEngine
         /// <summary>
         /// <see cref="IRuleFactory{TPassResult, TFailureResult}"/>
         /// </summary>
-        /// <param name="provider">if null use default provider</param>
+        /// <param name="provider"></param>
         public RuleFactory(IRuleObserverProvider provider = null)
         {
             Provider = provider ?? new RuleObserverDefaultProvider();
         }
+
+
+
         /// <summary>
         /// <see cref="IRuleFactory{TPassResult, TFailureResult}.RegisterFunc{T}(string, string, TPassResult, TFailureResult)"/>
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="key"></param>
+        /// <param name="groupKey"></param>
         /// <param name="func"></param>
         /// <param name="passResult"></param>
         /// <param name="failureResult"></param>
-        public void RegisterFunc<T>(string key, string func, string passResult, string failureResult)
+        public void RegisterFunc<T>(string groupKey, string func, TPassResult passResult, TFailureResult failureResult)
         {
             lock (_lstRules)
             {
                 var realFunc = _expressionProcessor.GenerateFunc<T, bool>(_formulaProcessor.SeparateFormula(func)); //make func
-                var rule = new BasicFuncRule<T, string, string>(realFunc, passResult, failureResult); // make func rule
+                var rule = new BasicFuncRule<T, TPassResult, TFailureResult>(realFunc, passResult, failureResult); // make func rule
                 //add to container
                 _lstRules.Add(new RuleModel()
                 {
-                    Key = key,
+                    Key = groupKey,
                     Rule = rule
                 });
             }
         }
+
         /// <summary>
         /// <see cref="IRuleFactory{TPassResult, TFailureResult}.RegisterTemplate{T}(string, Rule{T, TPassResult, TFailureResult})"/>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="rule"></param>
-        public void RegisterTemplate<T>(string key, Rule<T, string, string> rule)
+        public void RegisterTemplate<T>(string key, Rule<T, TPassResult, TFailureResult> rule)
         {
             //add to container
             lock (_lstRules)
@@ -121,15 +126,15 @@ namespace For.RuleEngine
         /// <param name="groupKey"></param>
         /// <param name="instance"></param>
         /// <returns></returns>
-        public IObservable<Result<string, string>> Apply<T>(string groupKey, T instance)
+        public IObservable<Result<TPassResult, TFailureResult>> Apply<T>(string groupKey, T instance)
         {
             // get concat observable
             lock (_lstRules)
             {
                 var funcs = _lstRules.Where(p => p.Key == groupKey);
-                return funcs.Aggregate<RuleModel, IObservable<Result<string, string>>>(null, (current, rule) => current == null
-                    ? Provider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)
-                    : current.Concat(Provider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)));
+                return funcs.Aggregate<RuleModel, IObservable<Result<TPassResult, TFailureResult>>>(null, (current, rule) => current == null
+                    ? Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule)
+                    : current.Concat(Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule)));
             }
         }
 
