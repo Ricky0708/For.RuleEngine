@@ -11,16 +11,16 @@ namespace For.RuleEngine
 {
     internal class RuleProvider
     {
-        internal static IObservable<Result<TPassresult, TFailureResult>> GenerateObservable<TPassresult, TFailureResult>(Rule<TPassresult, TFailureResult> model)
+        internal static IObservable<Result<TPassresult, TFailureResult>> GenerateObservable<TInstance, TPassresult, TFailureResult>(TInstance instance, Rule<TInstance,TPassresult,TFailureResult> model)
         {
             var observable = Observable.Create<Result<TPassresult, TFailureResult>>(ob =>
             {
-                var isPass = model.Invoke();
+                var isPass = model.Invoke(instance);
                 ob.OnNext(new Result<TPassresult, TFailureResult>()
                 {
                     IsPass = isPass,
                     PassResult = model.PassResult,
-                    FailureResult = model.FailureResult
+                    FailureResult = model.FailureResult,
                 });
                 ob.OnCompleted();
                 return Disposable.Create(() => { });

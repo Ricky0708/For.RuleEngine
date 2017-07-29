@@ -7,60 +7,68 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using For.ExpressionCompareGenerateEngine;
+using For.RuleEngine;
 using For.RuleEngine.Model;
 
 namespace For.RuleEngine
 {
-    public interface IRuleFactory
+    public interface IRuleFactory<TPassResult, TFailureResult>
     {
-        IObservable<Result<string, string>> ApplyFuncs<T>(string key, T instance);
-        IObservable<Result<T, U>> Apply<T, U>(Rule<T, U> rule);
+        IObservable<Result<TPassResult, TFailureResult>> ApplyFuncs<T>(string key, T instance);
+        void RegisterFunc<T>(string key, string func, TPassResult passResult, TFailureResult failureResult);
+        void RegisterTemplate<T>(string key, Rule<T, TPassResult, TFailureResult> rule);
+        void ReseterRules();
     }
-    public class RuleFactory : IRuleFactory
+    public class RuleFactory : IRuleFactory<string, string>
     {
         private static readonly FormulaProcess _formulaProcessor = new FormulaProcess();
         private static readonly ExpressionProcess _expressionProcessor = new ExpressionProcess();
-        private static readonly List<FuncModel> _lstFuncs = new List<FuncModel>();
-        //        private readonly Lookup<string, FuncModel> _lookup = (Lookup<string, FuncModel>)_lstFuncs.ToLookup(p => p.Key, p => p);
+        private static readonly List<RuleModel> _lstRules = new List<RuleModel>();
 
-        public static void RegisterFunc<T>(string key, string func, string passResult, string failureResult)
+        public void RegisterFunc<T>(string key, string func, string passResult, string failureResult)
         {
-            lock (_lstFuncs)
+            lock (_lstRules)
             {
                 var realFunc = _expressionProcessor.GenerateFunc<T, bool>(_formulaProcessor.SeparateFormula(func));
-                _lstFuncs.Add(new FuncModel()
+                var rule = new BasicFuncRule<T, string, string>(realFunc, passResult, failureResult);
+                _lstRules.Add(new RuleModel()
                 {
                     Key = key,
-                    Func = realFunc,
-                    PassResult = passResult,
-                    FailureResult = failureResult
+                    Rule = rule
                 });
             }
         }
-        public static void ReseterFuncs()
+
+        public void RegisterTemplate<T>(string key, Rule<T, string, string> rule)
         {
-            lock (_lstFuncs)
+            lock (_lstRules)
             {
-                _lstFuncs.Clear();
+                _lstRules.Add(new RuleModel()
+                {
+                    Key = key,
+                    Rule = rule
+                });
             }
         }
+
+        public void ReseterRules()
+        {
+            lock (_lstRules)
+            {
+                _lstRules.Clear();
+            }
+        }
+
         public IObservable<Result<string, string>> ApplyFuncs<T>(string key, T instance)
         {
-            lock (_lstFuncs)
+            lock (_lstRules)
             {
-                var funcs = _lstFuncs.Where(p => p.Key == key);
-                IObservable<Result<string, string>> obs = null;
-                foreach (var func in funcs)
-                {
-                    var rule = new BasicFuncRule<T, string, string>((Func<T, bool>)func.Func, instance, func.PassResult, func.FailureResult);
-                    obs = obs == null ? RuleProvider.GenerateObservable(rule) : obs.Concat(RuleProvider.GenerateObservable(rule));
-                }
-                return obs;
+                var funcs = _lstRules.Where(p => p.Key == key);
+                return funcs.Aggregate<RuleModel, IObservable<Result<string, string>>>(null, (current, rule) => current == null
+                    ? RuleProvider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)
+                    : current.Concat(RuleProvider.GenerateObservable(instance, (Rule<T, string, string>)rule.Rule)));
             }
         }
-        public IObservable<Result<T, U>> Apply<T, U>(Rule<T, U> rule)
-        {
-            return RuleProvider.GenerateObservable(rule);
-        }
+
     }
 }

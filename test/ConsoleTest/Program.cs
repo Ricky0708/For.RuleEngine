@@ -3,6 +3,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
 using For.RuleEngine;
+using For.RuleEngine.Model;
 
 namespace ConsoleTest
 {
@@ -23,13 +24,16 @@ namespace ConsoleTest
         static void Main(string[] args)
         {
             var finish = false;
-            RuleFactory.RegisterFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=男", "His name is Ricky and he is a more than 20 years old", "Less than 30");
-            RuleFactory.RegisterFunc<Profile>("1", ".Age<99", "Less than 30", "Over than 30");
-            RuleFactory.RegisterFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "Name is not Ricky");
-            RuleFactory.RegisterFunc<Order>("2", ".Total>1000", "100", "0");
-            RuleFactory.RegisterFunc<Order>("2", ".Total>3000", "500", "0");
-            RuleFactory.RegisterFunc<Order>("2", ".Total>5000", "1000", "0");
-            var factory = new RuleFactory();
+            IRuleFactory<string, string> factory = new RuleFactory();
+            factory.RegisterFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=男", "His name is Ricky and he is a more than 20 years old", "Less than 30");
+            factory.RegisterFunc<Profile>("1", ".Age<99", "Less than 30", "Over than 30");
+            factory.RegisterFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "Name is not Ricky");
+            factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
+            factory.RegisterFunc<Order>("2", ".Total>1000", "100", "0");
+            factory.RegisterFunc<Order>("2", ".Total>3000", "500", "0");
+            factory.RegisterFunc<Order>("2", ".Total>5000", "1000", "0");
+            factory.RegisterTemplate<Order>("2", new RuleOrder() { PassResult = "Pass", FailureResult = "Failure" });
+            
             var observable = factory.ApplyFuncs("1", new Profile()
             {
                 Name = "Ricky",
@@ -37,6 +41,11 @@ namespace ConsoleTest
                 Sex = "男"
             });
 
+            var observableb = factory.ApplyFuncs("2", new Order()
+            {
+                Total = 3500
+            });
+            observable = observable.Concat(observableb);
             observable.Subscribe(
                 next =>
                 {
@@ -54,15 +63,21 @@ namespace ConsoleTest
 
             SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
             Console.ReadLine();
-
         }
-    }
 
-    public class Rule : For.RuleEngine.Rule<string, string>
-    {
-        public override bool Invoke()
+        public class RuleOrder : Rule<Order, string, string>
         {
-            return true;
+            public override bool Invoke(Order instance)
+            {
+                return instance.Total > 5000;
+            }
+        }
+        public class RuleProfile : Rule<Profile, string, string>
+        {
+            public override bool Invoke(Profile instance)
+            {
+                return instance.Sex == "Boy";
+            }
         }
     }
 }
