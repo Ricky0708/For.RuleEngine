@@ -33,20 +33,19 @@ namespace ConsoleTest
             factory.RegisterFunc<Order>("2", ".Total>3000", "500", "0");
             factory.RegisterFunc<Order>("2", ".Total>5000", "1000", "0");
             factory.RegisterTemplate<Order>("2", new RuleOrder() { PassResult = "Pass", FailureResult = "Failure" });
-            
-            var observable = factory.ApplyFuncs("1", new Profile()
+
+            var observable = factory.Apply("1", new Profile()
             {
                 Name = "Ricky",
                 Age = 25,
                 Sex = "男"
             });
-
-            var observableb = factory.ApplyFuncs("2", new Order()
+            var observableb = factory.Apply("2", new Order()
             {
                 Total = 3500
             });
-            observable = observable.Concat(observableb);
-            observable.Subscribe(
+            //--------------------------------------------------------------------
+            using (observable.Subscribe(
                 next =>
                 {
                     Console.WriteLine(next.IsPass);
@@ -59,10 +58,14 @@ namespace ConsoleTest
                     Console.WriteLine("Err");
                     finish = true;
                 },
-                () => finish = true);
+                () => finish = true))
+            {
 
+            }
             SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
+            Console.WriteLine("aa");
             Console.ReadLine();
+
         }
 
         public class RuleOrder : Rule<Order, string, string>

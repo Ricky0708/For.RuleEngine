@@ -7,6 +7,9 @@ namespace For.RuleEngine.Model
         internal string Key { get; set; }
         internal IRule Rule { get; set; }
     }
+    /// <summary>
+    /// for container collect rules
+    /// </summary>
     internal interface IRule
     {
     }

@@ -11,20 +11,30 @@ namespace For.RuleEngine
 {
     internal class RuleProvider
     {
+        /// <summary>
+        /// make observable, if exception, it will trigger on error in observer
+        /// </summary>
+        /// <typeparam name="TInstance"></typeparam>
+        /// <typeparam name="TPassresult"></typeparam>
+        /// <typeparam name="TFailureResult"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
         internal static IObservable<Result<TPassresult, TFailureResult>> GenerateObservable<TInstance, TPassresult, TFailureResult>(TInstance instance, Rule<TInstance,TPassresult,TFailureResult> model)
         {
             var observable = Observable.Create<Result<TPassresult, TFailureResult>>(ob =>
             {
                 var isPass = model.Invoke(instance);
-                ob.OnNext(new Result<TPassresult, TFailureResult>()
+                ob.OnNext(new Result<TPassresult, TFailureResult>() //next call back
                 {
                     IsPass = isPass,
                     PassResult = model.PassResult,
                     FailureResult = model.FailureResult,
                 });
-                ob.OnCompleted();
+                ob.OnCompleted(); // compleate
                 return Disposable.Create(() => { });
             });
+
             return observable;
         }
     }
