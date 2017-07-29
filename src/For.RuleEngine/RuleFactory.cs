@@ -52,6 +52,10 @@ namespace For.RuleEngine
         private readonly List<RuleModel> _lstRules = new List<RuleModel>();
         public IRuleObserverProvider Provider { get; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="provider">if null use default provider</param>
         public RuleFactory(IRuleObserverProvider provider = null)
         {
             Provider = provider ?? new RuleObserverDefaultProvider();
