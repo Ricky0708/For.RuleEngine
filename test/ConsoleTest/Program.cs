@@ -40,27 +40,24 @@ namespace ConsoleTest
             factory.RegisterFunc<Profile>("1", ".Age<99", "Less than 30", "Over than 30");
             factory.RegisterFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "Name is not Ricky");
             factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
-            for (int i = 0; i < 1000000; i++)
-            {
 
-                //-------------------
-                var observable = factory.Apply("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
-                //-------------------
-                observable.Subscribe(
-                    next =>
-                    {
-                        Console.WriteLine(next.IsPass);
-                        Console.WriteLine(next.PassResult);
-                        Console.WriteLine(next.FailureResult);
-                        Console.WriteLine("");
-                    },
-                    onError =>
-                    {
-                        Console.WriteLine("Err");
-                        finish = true;
-                    },
-                    () => finish = true);
-            }
+            //-------------------
+            var observable = factory.Apply("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
+            //-------------------
+            observable.Subscribe(
+                next =>
+                {
+                    Console.WriteLine(next.IsPass);
+                    Console.WriteLine(next.PassResult);
+                    Console.WriteLine(next.FailureResult);
+                    Console.WriteLine("");
+                },
+                onError =>
+                {
+                    Console.WriteLine("Err");
+                    finish = true;
+                },
+                () => finish = true);
 
             SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
         }
