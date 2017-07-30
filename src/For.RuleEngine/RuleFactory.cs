@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -45,6 +46,14 @@ namespace For.RuleEngine
         /// <returns></returns>
         IObservable<Result<TPassResult, TFailureResult>> Apply<T>(string groupKey, T instance);
 
+        /// <summary>
+        /// make async observable from register container for subscribe
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="groupKey"></param>
+        /// <param name="instance"></param>
+        /// <returns></returns>
+        IObservable<Result<TPassResult, TFailureResult>> ApplyAsync<T>(string groupKey, T instance);
         /// <summary>
         /// make observable from input parameter use rule template
         /// </summary>
@@ -161,6 +170,26 @@ namespace For.RuleEngine
                     : current.Concat(Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule)));
             }
         }
+
+        /// <summary>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.ApplyAsync{T}(string, T)"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="groupKey"></param>
+        /// <param name="instance"></param>
+        /// <returns></returns>
+        public IObservable<Result<TPassResult, TFailureResult>> ApplyAsync<T>(string groupKey, T instance)
+        {
+            // get concat observable
+            lock (_lstRules)
+            {
+                var funcs = _lstRules.Where(p => p.Key == groupKey);
+                return funcs.Aggregate<RuleModel, IObservable<Result<TPassResult, TFailureResult>>>(null, (current, rule) => current == null
+                    ? Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule).SubscribeOn(Scheduler.ThreadPool)
+                    : current.Merge(Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule).SubscribeOn(Scheduler.ThreadPool)));
+            }
+        }
+
 
         /// <summary>
         /// <see cref="IRuleFactory{TPassResult, TFailureResult}.Apply{T}(T, Rule{T, TPassResult, TFailureResult})"/>

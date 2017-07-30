@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using For.RuleEngine.Model;
 
@@ -37,17 +39,15 @@ namespace For.RuleEngine
         {
             var observable = Observable.Create<Result<TPassresult, TFailureResult>>(ob =>
             {
-                var isPass = model.Invoke(instance);
                 ob.OnNext(new Result<TPassresult, TFailureResult>() //next call back
                 {
-                    IsPass = isPass,
+                    IsPass = model.Invoke(instance),
                     PassResult = model.PassResult,
                     FailureResult = model.FailureResult,
                 });
                 ob.OnCompleted(); // compleate
                 return Disposable.Create(() => { });
             });
-
             return observable;
         }
     }

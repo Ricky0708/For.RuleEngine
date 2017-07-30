@@ -2,6 +2,7 @@
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using ConsoleTest.Rules;
 using For.RuleEngine;
 using For.RuleEngine.Model;
@@ -36,13 +37,13 @@ namespace ConsoleTest
         {
             var finish = false;
             IRuleFactory<string, string> factory = new RuleFactory<string, string>();
-            factory.RegisterFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=男", "His name is Ricky and he is a more than 20 years old", "Less than 30");
-            factory.RegisterFunc<Profile>("1", ".Age<99", "Less than 30", "Over than 30");
-            factory.RegisterFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "Name is not Ricky");
-            factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
-            factory.RegisterTemplate<Profile>("1", new RuleProfileCompareOrder(new Order() { Total = 1000 }) { PassResult = "A", FailureResult = "B" });
+            factory.RegisterFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=男", "His name is Ricky and he is a more than 20 years old", "A");
+            factory.RegisterFunc<Profile>("1", ".Age<99", "Less than 30", "B");
+            factory.RegisterFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "C");
+            factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "D" });
+            factory.RegisterTemplate<Profile>("1", new RuleProfileCompareOrder(new Order() { Total = 1000 }) { PassResult = "A", FailureResult = "E" });
             //-------------------
-            var observable = factory.Apply("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
+            var observable = factory.ApplyAsync("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
             //-------------------
             observable.Subscribe(
                 next =>
@@ -59,7 +60,9 @@ namespace ConsoleTest
                 },
                 () => finish = true);
 
+
             SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
+            Console.WriteLine("finsih");
         }
 
         static void RunOrder()
@@ -87,5 +90,6 @@ namespace ConsoleTest
                 () => finish = true);
             SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
         }
+
     }
 }
