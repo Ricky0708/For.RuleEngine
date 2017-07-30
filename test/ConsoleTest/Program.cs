@@ -43,11 +43,13 @@ namespace ConsoleTest
             factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "D" });
             factory.RegisterTemplate<Profile>("1", new RuleProfileCompareOrder(new Order() { Total = 1000 }) { PassResult = "A", FailureResult = "E" });
             //-------------------
-            var observable = factory.ApplyAsync("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
+            var observable = factory.Apply("1", new Profile() { Name = "Ricky", Age = 25, Sex = "男" });
             //-------------------
+            Console.WriteLine("start");
             observable.Subscribe(
                 next =>
                 {
+                    Console.WriteLine(System.Threading.Thread.CurrentThread.ManagedThreadId);
                     Console.WriteLine(next.IsPass);
                     Console.WriteLine(next.PassResult);
                     Console.WriteLine(next.FailureResult);
@@ -59,7 +61,6 @@ namespace ConsoleTest
                     finish = true;
                 },
                 () => finish = true);
-
 
             SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
             Console.WriteLine("finsih");

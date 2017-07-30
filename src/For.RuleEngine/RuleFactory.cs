@@ -185,8 +185,8 @@ namespace For.RuleEngine
             {
                 var funcs = _lstRules.Where(p => p.Key == groupKey);
                 return funcs.Aggregate<RuleModel, IObservable<Result<TPassResult, TFailureResult>>>(null, (current, rule) => current == null
-                    ? Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule).SubscribeOn(Scheduler.ThreadPool)
-                    : current.Merge(Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule).SubscribeOn(Scheduler.ThreadPool)));
+                    ? Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule).SubscribeOn(TaskPoolScheduler.Default)
+                    : current.Merge(Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule).SubscribeOn(TaskPoolScheduler.Default)));
             }
         }
 
