@@ -56,7 +56,7 @@ namespace For.RuleEngine
         /// <summary>
         /// <see cref="IRuleFactory{TPassResult, TFailureResult}"/>
         /// </summary>
-        /// <param name="provider"></param>
+        /// <param name="provider">if null use default provider</param>
         public RuleFactory(IRuleObserverProvider provider = null)
         {
             Provider = provider ?? new RuleObserverDefaultProvider();
