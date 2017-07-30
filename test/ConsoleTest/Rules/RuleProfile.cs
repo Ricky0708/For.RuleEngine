@@ -14,4 +14,16 @@ namespace ConsoleTest.Rules
             return instance.Sex == "Boy";
         }
     }
+    public class RuleProfileCompareOrder : Rule<Profile, string, string>
+    {
+        private Order _order;
+        public RuleProfileCompareOrder(Order order)
+        {
+            _order = order;
+        }
+        public override bool Invoke(Profile instance)
+        {
+            return instance.Age < _order.Total;
+        }
+    }
 }

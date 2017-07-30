@@ -14,14 +14,7 @@ namespace For.RuleEngine
 {
     public interface IRuleFactory<TPassResult, TFailureResult>
     {
-        /// <summary>
-        /// get observable for subscribe
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="groupKey"></param>
-        /// <param name="instance"></param>
-        /// <returns></returns>
-        IObservable<Result<TPassResult, TFailureResult>> Apply<T>(string groupKey, T instance);
+
 
         /// <summary>
         /// regist rule string func to container
@@ -43,7 +36,38 @@ namespace For.RuleEngine
         /// reset container
         /// </summary>
         void ReseterRules();
+        /// <summary>
+        /// make observable from register container for subscribe
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="groupKey"></param>
+        /// <param name="instance"></param>
+        /// <returns></returns>
+        IObservable<Result<TPassResult, TFailureResult>> Apply<T>(string groupKey, T instance);
 
+        /// <summary>
+        /// make observable from input parameter use rule template
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="rule"></param>
+        /// <returns></returns>
+        IObservable<Result<TPassResult, TFailureResult>> Apply<T>(T instance, Rule<T, TPassResult, TFailureResult> rule);
+
+        /// <summary>
+        /// make observable from input parameter use string func
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="func"></param>
+        /// <param name="passResult"></param>
+        /// <param name="failureResult"></param>
+        /// <returns></returns>
+        IObservable<Result<TPassResult, TFailureResult>> Apply<T>(T instance, string func, TPassResult passResult, TFailureResult failureResult);
+
+        /// <summary>
+        /// observable generate provider
+        /// </summary>
         IRuleObserverProvider Provider { get; }
     }
     public class RuleFactory<TPassResult, TFailureResult> : IRuleFactory<TPassResult, TFailureResult>
@@ -51,6 +75,8 @@ namespace For.RuleEngine
         private static readonly FormulaProcess _formulaProcessor = new FormulaProcess(); //Separate string formula
         private static readonly ExpressionProcess _expressionProcessor = new ExpressionProcess(); // generate formula to expression
         private readonly List<RuleModel> _lstRules = new List<RuleModel>();
+
+
         public IRuleObserverProvider Provider { get; }
 
         /// <summary>
@@ -61,8 +87,6 @@ namespace For.RuleEngine
         {
             Provider = provider ?? new RuleObserverDefaultProvider();
         }
-
-
 
         /// <summary>
         /// <see cref="IRuleFactory{TPassResult, TFailureResult}.RegisterFunc{T}(string, string, TPassResult, TFailureResult)"/>
@@ -138,5 +162,32 @@ namespace For.RuleEngine
             }
         }
 
+        /// <summary>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.Apply{T}(T, Rule{T, TPassResult, TFailureResult})"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="rule"></param>
+        /// <returns></returns>
+        public IObservable<Result<TPassResult, TFailureResult>> Apply<T>(T instance, Rule<T, TPassResult, TFailureResult> rule)
+        {
+            return Provider.GenerateObservable(instance, rule);
+        }
+
+        /// <summary>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.Apply{T}(T, string, TPassResult, TFailureResult)"/>
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance"></param>
+        /// <param name="func"></param>
+        /// <param name="passResult"></param>
+        /// <param name="failureResult"></param>
+        /// <returns></returns>
+        public IObservable<Result<TPassResult, TFailureResult>> Apply<T>(T instance, string func, TPassResult passResult, TFailureResult failureResult)
+        {
+            var realFunc = _expressionProcessor.GenerateFunc<T, bool>(_formulaProcessor.SeparateFormula(func)); //make func
+            var rule = new BasicFuncRule<T, TPassResult, TFailureResult>(realFunc, passResult, failureResult); // make func rule
+            return Provider.GenerateObservable(instance, rule);
+        }
     }
 }

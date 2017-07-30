@@ -39,9 +39,9 @@ namespace UnitTestProject1
         }
         [TestMethod]
         public void TemplateTest()
-        { 
+        {
             var finish = false;
-            IRuleFactory<string, string> factory = new RuleFactory<string,string>();
+            IRuleFactory<string, string> factory = new RuleFactory<string, string>();
             factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
 
             var observable = factory.Apply("1", new Profile()
@@ -67,5 +67,61 @@ namespace UnitTestProject1
             p.Dispose();
         }
 
+        [TestMethod]
+        public void FuncWithoutRegister()
+        {
+            var finish = false;
+            IRuleFactory<string, string> factory = new RuleFactory<string, string>();
+            factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "Failure" });
+            var observable = factory.Apply(new Profile()
+            {
+                Name = "Ricky",
+                Age = 25,
+                Sex = "¨k"
+            }, ".Name = Ricky", "Pass", "Failure");
+            var p = observable.Subscribe(
+                next =>
+                {
+                    Assert.AreEqual(next.IsPass, true);
+                    Assert.AreEqual(next.PassResult, "Pass");
+                    Assert.AreEqual(next.FailureResult, "Failure");
+                },
+                onError =>
+                {
+                    Console.WriteLine("Err");
+                    finish = true;
+                },
+                () => finish = true);
+            SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
+            p.Dispose();
+        }
+        [TestMethod]
+        public void TemplateWithoutRegister()
+        {
+            var finish = false;
+            IRuleFactory<string, string> factory = new RuleFactory<string, string>();
+            var observable = factory.Apply(new Profile()
+            {
+                Name = "Ricky",
+                Age = 25,
+                Sex = "¨k"
+            }, new RuleProfileForNoRegister(new Order() { Total = 25 }) { PassResult = "Pass", FailureResult = "Failure" });
+
+            var p = observable.Subscribe(
+                next =>
+                {
+                    Assert.AreEqual(next.IsPass, true);
+                    Assert.AreEqual(next.PassResult, "Pass");
+                    Assert.AreEqual(next.FailureResult, "Failure");
+                },
+                onError =>
+                {
+                    Console.WriteLine("Err");
+                    finish = true;
+                },
+                () => finish = true);
+            SpinWait.SpinUntil(() => finish, 1000 * 60 * 2);
+            p.Dispose();
+        }
     }
 }

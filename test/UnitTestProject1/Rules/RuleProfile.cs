@@ -14,4 +14,18 @@ namespace UnitTestProject1
             return instance.Sex == "Boy";
         }
     }
+
+    public class RuleProfileForNoRegister : Rule<Profile, string, string>
+    {
+        private readonly Order _order;
+
+        public RuleProfileForNoRegister(Order order)
+        {
+            _order = order;
+        }
+        public override bool Invoke(Profile instance)
+        {
+            return instance.Age == _order.Total;
+        }
+    }
 }
