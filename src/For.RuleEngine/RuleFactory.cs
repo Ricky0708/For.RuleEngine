@@ -27,12 +27,13 @@ namespace For.RuleEngine
         /// <param name="passResult"></param>
         /// <param name="failureResult"></param>
         void RegisterFunc<T>(string groupKey, string func, TPassResult passResult, TFailureResult failureResult);
+
         /// <summary>
         /// register rule template to container
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
-        /// <param name="rule</param>
+        /// <param name="rule"></param>
         void RegisterTemplate<T>(string key, Rule<T, TPassResult, TFailureResult> rule);
         /// <summary>
         /// reset container
@@ -55,12 +56,13 @@ namespace For.RuleEngine
         /// <param name="instance"></param>
         /// <returns></returns>
         IObservable<Result<TPassResult, TFailureResult>> ApplyAsync<T>(string groupKey, T instance);
+
         /// <summary>
         /// make observable from input parameter use rule template
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="instance"></param>
-        /// <param name="rule</param>
+        /// <param name="rule"></param>
         /// <returns></returns>
         IObservable<Result<TPassResult, TFailureResult>> Apply<T>(T instance, Rule<T, TPassResult, TFailureResult> rule);
 
@@ -122,11 +124,11 @@ namespace For.RuleEngine
         }
 
         /// <summary>
-        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.RegisterTemplate{T}(string, IRule{TInstance,TPassResult,TFailureResult})"/>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.Apply{T}(T, Rule{T, TPassResult, TFailureResult})"/>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
-        /// <param name="rule</param>
+        /// <param name="rule"></param>
         public void RegisterTemplate<T>(string key, Rule<T, TPassResult, TFailureResult> rule)
         {
             //add to container
@@ -193,7 +195,7 @@ namespace For.RuleEngine
 
 
         /// <summary>
-        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.Apply{T}(T, Rule{TInstance,TPassResult,TFailureResult})"/>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.Apply{T}(T, Rule{T, TPassResult, TFailureResult})"/>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="instance"></param>
