@@ -1,4 +1,6 @@
 # For.RuleEngine
+* V 1.0.5
+  * add use real func to register and apply
 * V 1.0.4
   * refactor
 * V 1.0.3
