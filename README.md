@@ -1,5 +1,6 @@
 # For.RuleEngine
-
+* V 1.0.4
+  * refactor
 * V 1.0.3
   * add async observable, use ApplyaAync(...) to get and then subscribe it
 * V 1.0.2
