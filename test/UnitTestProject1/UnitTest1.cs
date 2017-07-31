@@ -16,7 +16,7 @@ namespace UnitTestProject1
         {
             var finish = false;
             IRuleFactory<string, string> factory = new RuleFactory<string, string>();
-            factory.RegisterFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=¨k", "His name is Ricky and he is a more than 20 years old", "Less than 30");
+            factory.RegisterStringFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=¨k", "His name is Ricky and he is a more than 20 years old", "Less than 30");
             var observable = factory.Apply("1", new Profile()
             {
                 Name = "Ricky",

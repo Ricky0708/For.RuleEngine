@@ -37,9 +37,9 @@ namespace ConsoleTest
         {
             var finish = false;
             IRuleFactory<string, string> factory = new RuleFactory<string, string>();
-            factory.RegisterFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=男", "His name is Ricky and he is a more than 20 years old", "A");
-            factory.RegisterFunc<Profile>("1", ".Age<99", "Less than 30", "B");
-            factory.RegisterFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "C");
+            factory.RegisterStringFunc<Profile>("1", ".Age>20 & .Name=Ricky & .Sex=男", "His name is Ricky and he is a more than 20 years old", "A");
+            factory.RegisterStringFunc<Profile>("1", ".Age<99", "Less than 30", "B");
+            factory.RegisterStringFunc<Profile>("1", ".Name=Ricky", "Name is Ricky", "C");
             factory.RegisterTemplate<Profile>("1", new RuleProfile() { PassResult = "Pass", FailureResult = "D" });
             factory.RegisterTemplate<Profile>("1", new RuleProfileCompareOrder(new Order() { Total = 1000 }) { PassResult = "A", FailureResult = "E" });
             //-------------------
@@ -70,9 +70,9 @@ namespace ConsoleTest
         {
             var finish = false;
             IRuleFactory<string, string> factory = new RuleFactory<string, string>();
-            factory.RegisterFunc<Order>("2", ".Total>1000", "100", "0");
-            factory.RegisterFunc<Order>("2", ".Total>3000", "500", "0");
-            factory.RegisterFunc<Order>("2", ".Total>5000", "1000", "0");
+            factory.RegisterStringFunc<Order>("2", ".Total>1000", "100", "0");
+            factory.RegisterStringFunc<Order>("2", ".Total>3000", "500", "0");
+            factory.RegisterStringFunc<Order>("2", ".Total>5000", "1000", "0");
             factory.RegisterTemplate<Order>("2", new RuleOrder() { PassResult = "Pass", FailureResult = "Failure" });
             var observable = factory.Apply("2", new Order() { Total = 3500 });
             observable.Subscribe(

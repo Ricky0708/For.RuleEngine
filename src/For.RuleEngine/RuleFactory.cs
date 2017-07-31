@@ -26,7 +26,18 @@ namespace For.RuleEngine
         /// <param name="func"></param>
         /// <param name="passResult"></param>
         /// <param name="failureResult"></param>
-        void RegisterFunc<T>(string groupKey, string func, TPassResult passResult, TFailureResult failureResult);
+        void RegisterStringFunc<T>(string groupKey, string func, TPassResult passResult, TFailureResult failureResult);
+
+
+        /// <summary>
+        /// regist rule func to container
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="groupKey"></param>
+        /// <param name="func"></param>
+        /// <param name="passResult"></param>
+        /// <param name="failureResult"></param>
+        void RegisterFunc<T>(string groupKey, Func<T, bool> func, TPassResult passResult, TFailureResult failureResult);
 
         /// <summary>
         /// register rule template to container
@@ -101,20 +112,34 @@ namespace For.RuleEngine
         }
 
         /// <summary>
-        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.RegisterFunc{T}(string, string, TPassResult, TFailureResult)"/>
+        /// <see cref="IRuleFactory{TPassResult,TFailureResult}.RegisterStringFunc{T}"/>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="groupKey"></param>
         /// <param name="func"></param>
         /// <param name="passResult"></param>
         /// <param name="failureResult"></param>
-        public void RegisterFunc<T>(string groupKey, string func, TPassResult passResult, TFailureResult failureResult)
+        public void RegisterStringFunc<T>(string groupKey, string func, TPassResult passResult, TFailureResult failureResult)
         {
+            var realFunc = _expressionProcessor.GenerateFunc<T, bool>(_formulaProcessor.SeparateFormula(func)); //make func
             lock (_lstRules)
             {
-                var realFunc = _expressionProcessor.GenerateFunc<T, bool>(_formulaProcessor.SeparateFormula(func)); //make func
                 var rule = new BasicFuncRule<T, TPassResult, TFailureResult>(realFunc, passResult, failureResult); // make func rule
                 //add to container
+                _lstRules.Add(new ContainerModel()
+                {
+                    Key = groupKey,
+                    Rule = rule
+                });
+            }
+        }
+
+        public void RegisterFunc<T>(string groupKey, Func<T, bool> func, TPassResult passResult, TFailureResult failureResult)
+        {
+            var rule = new BasicFuncRule<T, TPassResult, TFailureResult>(func, passResult, failureResult); // make func rule
+            //add to container
+            lock (_lstRules)
+            {
                 _lstRules.Add(new ContainerModel()
                 {
                     Key = groupKey,
