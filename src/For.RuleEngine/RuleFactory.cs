@@ -9,6 +9,7 @@ using System.Reactive.Subjects;
 using System.Text;
 using For.ExpressionCompareGenerateEngine;
 using For.RuleEngine;
+using For.RuleEngine.Interface;
 using For.RuleEngine.Model;
 
 namespace For.RuleEngine
@@ -31,7 +32,7 @@ namespace For.RuleEngine
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
-        /// <param name="rule"></param>
+        /// <param name="rule</param>
         void RegisterTemplate<T>(string key, Rule<T, TPassResult, TFailureResult> rule);
         /// <summary>
         /// reset container
@@ -59,7 +60,7 @@ namespace For.RuleEngine
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="instance"></param>
-        /// <param name="rule"></param>
+        /// <param name="rule</param>
         /// <returns></returns>
         IObservable<Result<TPassResult, TFailureResult>> Apply<T>(T instance, Rule<T, TPassResult, TFailureResult> rule);
 
@@ -83,7 +84,7 @@ namespace For.RuleEngine
     {
         private static readonly FormulaProcess _formulaProcessor = new FormulaProcess(); //Separate string formula
         private static readonly ExpressionProcess _expressionProcessor = new ExpressionProcess(); // generate formula to expression
-        private readonly List<RuleModel> _lstRules = new List<RuleModel>();
+        private readonly List<ContainerModel> _lstRules = new List<ContainerModel>();
 
 
         public IRuleObserverProvider Provider { get; }
@@ -112,7 +113,7 @@ namespace For.RuleEngine
                 var realFunc = _expressionProcessor.GenerateFunc<T, bool>(_formulaProcessor.SeparateFormula(func)); //make func
                 var rule = new BasicFuncRule<T, TPassResult, TFailureResult>(realFunc, passResult, failureResult); // make func rule
                 //add to container
-                _lstRules.Add(new RuleModel()
+                _lstRules.Add(new ContainerModel()
                 {
                     Key = groupKey,
                     Rule = rule
@@ -121,17 +122,17 @@ namespace For.RuleEngine
         }
 
         /// <summary>
-        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.RegisterTemplate{T}(string, Rule{T, TPassResult, TFailureResult})"/>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.RegisterTemplate{T}(string, IRule{TInstance,TPassResult,TFailureResult})"/>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
-        /// <param name="rule"></param>
+        /// <param name="rule</param>
         public void RegisterTemplate<T>(string key, Rule<T, TPassResult, TFailureResult> rule)
         {
             //add to container
             lock (_lstRules)
             {
-                _lstRules.Add(new RuleModel()
+                _lstRules.Add(new ContainerModel()
                 {
                     Key = key,
                     Rule = rule
@@ -165,7 +166,7 @@ namespace For.RuleEngine
             lock (_lstRules)
             {
                 var funcs = _lstRules.Where(p => p.Key == groupKey);
-                return funcs.Aggregate<RuleModel, IObservable<Result<TPassResult, TFailureResult>>>(null, (current, rule) => current == null
+                return funcs.Aggregate<ContainerModel, IObservable<Result<TPassResult, TFailureResult>>>(null, (current, rule) => current == null
                     ? Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule)
                     : current.Concat(Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule)));
             }
@@ -184,7 +185,7 @@ namespace For.RuleEngine
             lock (_lstRules)
             {
                 var funcs = _lstRules.Where(p => p.Key == groupKey);
-                return funcs.Aggregate<RuleModel, IObservable<Result<TPassResult, TFailureResult>>>(null, (current, rule) => current == null
+                return funcs.Aggregate<ContainerModel, IObservable<Result<TPassResult, TFailureResult>>>(null, (current, rule) => current == null
                     ? Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule).SubscribeOn(TaskPoolScheduler.Default)
                     : current.Merge(Provider.GenerateObservable(instance, (Rule<T, TPassResult, TFailureResult>)rule.Rule).SubscribeOn(TaskPoolScheduler.Default)));
             }
@@ -192,11 +193,11 @@ namespace For.RuleEngine
 
 
         /// <summary>
-        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.Apply{T}(T, Rule{T, TPassResult, TFailureResult})"/>
+        /// <see cref="IRuleFactory{TPassResult, TFailureResult}.Apply{T}(T, Rule{TInstance,TPassResult,TFailureResult})"/>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="instance"></param>
-        /// <param name="rule"></param>
+        /// <param name="rule</param>
         /// <returns></returns>
         public IObservable<Result<TPassResult, TFailureResult>> Apply<T>(T instance, Rule<T, TPassResult, TFailureResult> rule)
         {

@@ -1,29 +1,20 @@
 ﻿using System;
+using For.RuleEngine.Interface;
 
 namespace For.RuleEngine.Model
 {
-    internal class RuleModel
-    {
-        internal string Key { get; set; }
-        internal IRule Rule { get; set; }
-    }
     /// <summary>
-    /// for container collect rules
+    /// func rule model
     /// </summary>
-    internal interface IRule
-    {
-    }
-
-    public abstract class Rule<TInstance, TPassResult, TFailureResult> : _ValidateBase<TPassResult, TFailureResult>, IRule
-    {
-        public abstract bool Invoke(TInstance instance);
-    }
-
+    /// <typeparam name="TInstance"></typeparam>
+    /// <typeparam name="TPassResult"></typeparam>
+    /// <typeparam name="TFailureResult"></typeparam>
     internal class BasicFuncRule<TInstance, TPassResult, TFailureResult> : Rule<TInstance, TPassResult, TFailureResult>
     {
         private readonly Func<TInstance, bool> _func;
+        public sealed override TPassResult PassResult { get; set; }
+        public sealed override TFailureResult FailureResult { get; set; }
 
-       
         internal BasicFuncRule(Func<TInstance, bool> func, TPassResult passResult, TFailureResult failureResult)
         {
             _func = func;
@@ -35,6 +26,7 @@ namespace For.RuleEngine.Model
         {
             return _func.Invoke(instance);
         }
-    }
 
+
+    }
 }
