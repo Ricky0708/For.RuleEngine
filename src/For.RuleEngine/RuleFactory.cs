@@ -110,7 +110,6 @@ namespace For.RuleEngine
         private static readonly ExpressionProcess _expressionProcessor = new ExpressionProcess(); // generate formula to expression
         private readonly List<ContainerModel> _lstRules = new List<ContainerModel>();
 
-
     
 
         public IRuleObserverProvider Provider { get; }
@@ -237,7 +236,7 @@ namespace For.RuleEngine
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="instance"></param>
-        /// <param name="rule</param>
+        /// <param name="rule"></param>
         /// <returns></returns>
         public IObservable<Result<TPassResult, TFailureResult>> Apply<T>(T instance, Rule<T, TPassResult, TFailureResult> rule)
         {

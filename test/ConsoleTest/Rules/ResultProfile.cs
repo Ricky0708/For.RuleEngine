@@ -22,12 +22,14 @@ namespace ConsoleTest.Rules
     public class RuleProfileCompareOrder : Rule<Profile, string, string>
     {
         private Order _order;
-        public override string PassResult { get; set; }
-        public override string FailureResult { get; set; }
         public RuleProfileCompareOrder(Order order)
         {
             _order = order;
         }
+
+        public override string PassResult { get; set; }
+        public override string FailureResult { get; set; }
+  
         public override bool Invoke(Profile instance)
         {
             return instance.Age < _order.Total;
